@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
-
+//below is the main function
 int main(int argc, char **argv) 
 {
     int i, secs;
