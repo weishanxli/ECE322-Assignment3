@@ -260,6 +260,7 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
+<<<<<<< Updated upstream
 	switch(**argv[0]){
 		case "fg":
 			do_bgfg(**argv);
@@ -277,6 +278,14 @@ int builtin_cmd(char **argv)
 			return 0;
 	}
     return 0;     /* not a builtin command */
+=======
+    case **argv[0]: // code to be executed if n = 1;
+        return 1;
+    case 2: // code to be executed if n = 2;
+        return 1;
+    default: 
+		return 0;// code to be executed if n doesn't match any cases
+>>>>>>> Stashed changes
 }
 
 /* 
@@ -513,6 +522,7 @@ void unix_error(char *msg)
 {
     fprintf(stdout, "%s: %s\n", msg, strerror(errno));
     exit(1);
+	//hello this is a test of stash
 }
 
 /*
