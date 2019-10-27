@@ -523,6 +523,12 @@ void unix_error(char *msg)
     fprintf(stdout, "%s: %s\n", msg, strerror(errno));
     exit(1);
 	//hello this is a test of stash
+	printf("hello");
+	printf("hello");
+	printf("hello");
+	printf("hello");
+	printf("hello");
+	printf("hello");
 }
 
 /*
