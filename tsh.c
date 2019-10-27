@@ -260,6 +260,22 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
+	switch(**argv[0]){
+		case "fg":
+			do_bgfg(**argv);
+			return 1;
+		case "bg":
+			do_bgfg(**argv);
+			return 1;
+		case "jobs":
+			listjobs(*jobs);
+			return 1;
+		case "quit":
+			//********UNSURE***********
+			exit(0);
+		default:
+			return 0;
+	}
     return 0;     /* not a builtin command */
 }
 
