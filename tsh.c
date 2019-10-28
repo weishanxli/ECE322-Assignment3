@@ -177,7 +177,7 @@ void eval(char *cmdline)
 		return;
 	}
 	
-	if (!builtin_command(argv)){
+	if (!builtin_cmd(argv)){
 		if ((pid = fork()) == 0){
 			if (execve(argv[0], argv, environ) < 0){
 				printf("%s: Command not found.\n", argv[0]);
@@ -261,24 +261,22 @@ int parseline(const char *cmdline, char **argv)
 int builtin_cmd(char **argv) 
 {
 
-	switch(**argv[0]){
-		case "fg":
-			do_bgfg(**argv);
-			return 1;
-		case "bg":
-			do_bgfg(**argv);
-			return 1;
-		case "jobs":
-			listjobs(*jobs);
-			return 1;
-		case "quit":
-			//********UNSURE***********
-			exit(0);
-		default:
-			return 0;
+	char bgStr[] = "bg";
+	char fgStr[] = "fg";
+	char quitStr[] = "quit";
+	char jobsStr[] = "jobs";
+	
+	if(!strcmp(argv[0], fgStr) | !strcmp(argv[0], bgStr)){
+		do_bgfg(argv);
+		return 1;
+	}else if(!strcmp(argv[0], quitStr)){
+		printf("EXITING\n");
+		exit(0);
+	}else if(!strcmp(argv[0], jobsStr)){
+		printf("Listing Jobs");
+		return 1;
 	}
     return 0;     /* not a builtin command */
-
 }
 
 /* 
