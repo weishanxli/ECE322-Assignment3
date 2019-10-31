@@ -186,12 +186,16 @@ void eval(char *cmdline)
 		}
 		if (!bg) {
 			int status;
+			addjob(jobs, pid, FG, cmdline);
 			if (waitpid(pid, &status, 0) < 0) {
 				unix_error("waitfg: waitpid error");
 			}
+			deletejob(jobs, pid);
 		}
 		else {
-			printf("%d %s", pid, cmdline);
+			addjob(jobs, pid, BG, cmdline);
+			printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
+		
 		}	
 	}
     return;
@@ -270,10 +274,9 @@ int builtin_cmd(char **argv)
 		do_bgfg(argv);
 		return 1;
 	}else if(!strcmp(argv[0], quitStr)){
-		printf("EXITING\n");
 		exit(0);
 	}else if(!strcmp(argv[0], jobsStr)){
-		printf("Listing Jobs");
+		listjobs(jobs);
 		return 1;
 	}
     return 0;     /* not a builtin command */
@@ -318,6 +321,15 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+	int i=0;
+	for(i=0;i<MAXJOBS;i++){
+		if(jobs[i].pid != 0){
+			if(jobs[i].state == FG){
+				kill(jobs[i].pid, SIGINT);
+				printf("Job [%d] (%d) terminated by singal 2\n", jobs[i].jid, jobs[i].pid);
+			}
+		}
+	}
     return;
 }
 
