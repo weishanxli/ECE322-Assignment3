@@ -187,6 +187,7 @@ void eval(char *cmdline)
 		if (!bg) {	
 			int status;
 			addjob(jobs, pid, FG, cmdline);
+			
 			if (waitpid(pid, &status, 0) < 0) {
 				unix_error("waitfg: waitpid error");
 			}
@@ -325,7 +326,7 @@ void sigint_handler(int sig)
 	for(i=0;i<MAXJOBS;i++){
 		if(jobs[i].pid != 0){
 			if(jobs[i].state == FG){
-				kill(jobs[i].pid, SIGINT);
+				kill(-jobs[i].pid, SIGINT);
 				printf("Job [%d] (%d) terminated by singal 2\n", jobs[i].jid, jobs[i].pid);
 			}
 		}
@@ -346,10 +347,10 @@ void sigtstp_handler(int sig)
 		if(jobs[i].pid != 0){
 			if(jobs[i].state == FG){
 				printf("Job [%d] (%d) stopped by singal 2\n", jobs[i].jid, jobs[i].pid);
-				kill(jobs[i].pid, SIGTSTP);
+				kill(-jobs[i].pid, SIGSTOP);
 
 			}else if(jobs[i].state == ST){
-				kill(jobs[i].pid, SIGCONT);
+				kill(-jobs[i].pid, SIGCONT);
 			}
 		}
 	}
