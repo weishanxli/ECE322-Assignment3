@@ -121,8 +121,8 @@ int main(int argc, char **argv)
     Signal(SIGINT,  sigint_handler);   /* ctrl-c */
     Signal(SIGTSTP, sigtstp_handler);  /* ctrl-z */
     Signal(SIGCHLD, sigchld_handler);  /* Terminated or stopped child */
-
-    /* This one provides a clean way to kill the shell */
+    
+ /* This one provides a clean way to kill the shell */
     Signal(SIGQUIT, sigquit_handler); 
 
     /* Initialize the job list */
@@ -184,7 +184,7 @@ void eval(char *cmdline)
 				exit(0);
 			}
 		}
-		if (!bg) {
+		if (!bg) {	
 			int status;
 			addjob(jobs, pid, FG, cmdline);
 			if (waitpid(pid, &status, 0) < 0) {
@@ -340,6 +340,20 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
+	printf("in sig hand\n");
+	int i=0;
+	for(i=0;i<MAXJOBS;i++){
+		if(jobs[i].pid != 0){
+			if(jobs[i].state == FG){
+				printf("Job [%d] (%d) stopped by singal 2\n", jobs[i].jid, jobs[i].pid);
+				kill(jobs[i].pid, SIGTSTP);
+
+			}else if(jobs[i].state == ST){
+				kill(jobs[i].pid, SIGCONT);
+			}
+		}
+	}
+
     return;
 }
 
