@@ -296,6 +296,14 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
+	tmpJobId = pid2jid(pid);
+	int i=0;
+	for(i=0;i<MAXJOBS;i++){
+		if(jobs[i].jid == tmpJobId){
+			//*****************THIS IS NOT COMPLETE, ALSO NOT RECOMMENDED BY HINTS*****************
+			waitpid(jobs[i].pid);
+		}
+	}
     return;
 }
 
@@ -341,12 +349,11 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
-	printf("in sig hand\n");
 	int i=0;
 	for(i=0;i<MAXJOBS;i++){
 		if(jobs[i].pid != 0){
 			if(jobs[i].state == FG){
-				printf("Job [%d] (%d) stopped by singal 2\n", jobs[i].jid, jobs[i].pid);
+				printf("Job [%d] (%d) stopped by signal 2\n", jobs[i].jid, jobs[i].pid);
 				kill(-jobs[i].pid, SIGSTOP);
 
 			}else if(jobs[i].state == ST){
