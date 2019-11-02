@@ -346,14 +346,14 @@ void sigchld_handler(int sig)
 	int status;
 	
 	sigfillset(&mask);
-	while((pid = waitpid(-1, &status, (WUNTRACED | WNOHANG)) > 0){
-		if (WIFEXITED(staus) != 0){
+	while(pid = waitpid(-1, &status, (WUNTRACED | WNOHANG)) > 0){
+		if (WIFEXITED(status) != 0){
 			sigprocmask(SIG_BLOCK, &mask, &pmask);
 			deletejob(jobs, pid);
 			sigprocmask(SIG_SETMASK, &pmask, NULL);
 		}
 		if (WIFSTOPPED(status) != 0){
-			getjobpid(jobs, pid).state = ST;
+			getjobpid(jobs, pid)->state = ST;
 			return;
 		}
 	}
