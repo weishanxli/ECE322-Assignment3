@@ -170,6 +170,9 @@ void eval(char *cmdline)
 	int bg;
 	pid_t pid;
 	
+	sigset_t mask, pmask;
+	sigemptyset(&mask);
+	
 	strcpy(buf, cmdline);
 	bg = parseline(buf, argv);
 	
@@ -178,6 +181,8 @@ void eval(char *cmdline)
 	}
 	
 	if (!builtin_cmd(argv)){
+		sigfillset(&mask);
+		sigprocmask(SIG_BLOCK, &mask, &pmask);
 		if ((pid = fork()) == 0){
 			if (execve(argv[0], argv, environ) < 0){
 				printf("%s: Command not found.\n", argv[0]);
@@ -187,14 +192,18 @@ void eval(char *cmdline)
 		if (!bg) {	
 			int status;
 			addjob(jobs, pid, FG, cmdline);
+			sigprocmask(SIG_SETMASK, &pmask, NULL);
 			
-			if (waitpid(pid, &status, 0) < 0) {
+			waitfg(pid);
+			/*if (waitpid(pid, &status, 0) < 0) {
 				unix_error("waitfg: waitpid error");
-			}
+			}*/
 			deletejob(jobs, pid);
 		}
 		else {
+			
 			addjob(jobs, pid, BG, cmdline);
+			sigprocmask(SIG_SETMASK, &pmask, NULL);
 			printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
 		
 		}	
@@ -296,12 +305,17 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
-	tmpJobId = pid2jid(pid);
-	int i=0;
-	for(i=0;i<MAXJOBS;i++){
-		if(jobs[i].jid == tmpJobId){
-			//*****************THIS IS NOT COMPLETE, ALSO NOT RECOMMENDED BY HINTS*****************
-			waitpid(jobs[i].pid);
+	int doesJobExist = 0;
+	int i;
+	for (i=0; i<MAXJOBS; i++){
+		if (jobs[i].pid == pid){
+			doesJobExist = 1;
+			break;
+		}
+	}
+	if(doesJobExist){
+		while(jobs[i].state == FG){
+			sleep(1);
 		}
 	}
     return;
@@ -320,6 +334,14 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+	/*int olderrno = errno;
+	sigset_t mask, pmask;
+	pid_t pid;
+	
+	Sigfillset(&mask);
+	while((pid = waitpid(-1, NULL, 0)) > 0){
+		sigprocmask()
+	}*/
     return;
 }
 
@@ -354,6 +376,7 @@ void sigtstp_handler(int sig)
 		if(jobs[i].pid != 0){
 			if(jobs[i].state == FG){
 				printf("Job [%d] (%d) stopped by signal 2\n", jobs[i].jid, jobs[i].pid);
+				jobs[i].state = ST;
 				kill(-jobs[i].pid, SIGSTOP);
 
 			}else if(jobs[i].state == ST){
