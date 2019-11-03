@@ -316,7 +316,8 @@ void waitfg(pid_t pid)
 		}
 	}
 	if(doesJobExist){
-		while(pid==fgpid(jobs)){
+		//jobs[i].state == FG
+		while(pid == fgpid(jobs)){
 		}
 	}
     return;
@@ -341,14 +342,13 @@ void sigchld_handler(int sig)
 	while((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0){
 		if (WIFEXITED(status) != 0){
 			deletejob(jobs, pid);
-
 		}
 		if (WIFSTOPPED(status) != 0){
 			getjobpid(jobs, pid)->state = ST;
 			printf("Job [%d] (%d) stopped by signal %d\n", pid2jid(pid), pid, WSTOPSIG(status));
 		}
 		if (WIFSIGNALED(status)){
-			printf("Job [%d] (%d) terminated by signal %d\n", pid2jid(pid), pid, WSTOPSIG(status));
+			printf("Job [%d] (%d) terminated by signal %d\n", pid2jid(pid), pid, WTERMSIG(status));
 			deletejob(jobs, pid);
 		}
 	}
@@ -387,27 +387,27 @@ void sigtstp_handler(int sig)
 {
 	//printf("SGSTP Handler!!!!\n");
 
-	pid_t pid = fgpid(jobs);
-	if (pid != 0){
-		kill(-pid, sig);
-		printf("Job [%d] (%d) stopped by signal 20\n", pid2jid(pid), pid);
-	}
-
-	// int i=0;
-	// for(i=0;i<MAXJOBS;i++){
-	// 	if(jobs[i].pid != 0){
-	// 		//printf("part3\n");
-	// 		if(jobs[i].state == FG){
-	// 			//printf("%d\n", jobs[i].pid);
-	// 			printf("Job [%d] (%d) stopped by signal 20\n", jobs[i].jid, jobs[i].pid);
-	// 			jobs[i].state = ST;
-	// 			kill(-jobs[i].pid, SIGSTOP);
-
-	// 		}else if(jobs[i].state == ST){
-	// 			kill(-jobs[i].pid, SIGCONT);
-	// 		}
-	// 	}
+	// pid_t pid = fgpid(jobs);
+	// if (pid != 0){
+	// 	kill(-pid, sig);
+	// 	printf("Job [%d] (%d) stopped by signal 20\n", pid2jid(pid), pid);
 	// }
+
+	int i=0;
+	for(i=0;i<MAXJOBS;i++){
+		if(jobs[i].pid != 0){
+			//printf("part3\n");
+			if(jobs[i].state == FG){
+				//printf("%d\n", jobs[i].pid);
+				//printf("Job [%d] (%d) stopped by signal 20\n", jobs[i].jid, jobs[i].pid);
+				jobs[i].state = ST;
+				kill(-jobs[i].pid, SIGTSTP);
+
+			// }else if(jobs[i].state == ST){
+			// 	kill(-jobs[i].pid, SIGCONT);
+			}
+		}
+	}
 
     return;
 }
