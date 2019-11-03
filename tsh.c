@@ -176,6 +176,7 @@ void eval(char *cmdline)
 	strcpy(buf, cmdline);
 	bg = parseline(buf, argv);
 	
+
 	if (argv[0] == NULL){
 		return;
 	}
@@ -299,7 +300,66 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
-    return;
+	int jid;
+	pid_t pid;
+	char *pidOrjid;
+
+	pidOrjid = argv[1];
+
+	//if command has nonexistent id after fg/bg
+	if (pidOrjid == NULL) {
+		printf("%s command requires PID or %%jobid argument\n", argv[0]);
+		return;
+	}
+
+	//checks if jid
+	if (pidOrjid[0] == '%') {
+
+		//second argument after '%' set to integer value of jid from argv
+		jid = atoi(&pidOrjid[1]);
+
+		//check if nonexistant
+		if(getjobjid(jobs, jid) == NULL){
+			printf("%s: No such job\n", pidOrjid);
+			return;
+		} else {
+			pid = getjobjid(jobs, jid)->pid;
+		}
+	} 
+	//checks if pid
+	else if(isdigit(pidOrjid[0])) {
+
+		//get integer value of pid from argv
+		pid = atoi(pidOrjid);
+
+		//check if nonexistant
+		if(getjobpid(jobs, pid) == NULL){
+			printf("(%d): No such process\n", pid);
+			return;
+		}
+	} else {
+		//argv[0] equals FG/BG
+		printf("%s: argument must be a PID or %%jobid\n", argv[0]);
+		return;
+	}
+
+	//send continue signal
+	kill(-pid, SIGCONT);
+
+	//if fg input, set bg process state to fg
+	if (!strcmp("fg", argv[0])) {
+		getjobpid(jobs, pid)->state = FG;
+		waitfg(pid);
+	}
+
+	//if bg input, set fg process state to bg
+	if (!strcmp("bg", argv[0])) {
+
+		struct job_t *job;
+		job = getjobpid(jobs, pid);
+		printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline);
+		job->state = BG;
+	}
 }
 
 /* 
@@ -371,7 +431,7 @@ void sigint_handler(int sig)
 		if(jobs[i].pid != 0){
 			if(jobs[i].state == FG){
 				kill(-jobs[i].pid, sig);
-				printf("Job [%d] (%d) terminated by singal 2\n", jobs[i].jid, jobs[i].pid);
+				//printf("Job [%d] (%d) terminated by singal 2\n", jobs[i].jid, jobs[i].pid);
 			}
 		}
 	}
