@@ -273,18 +273,18 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
-
+	//initializing strings to compare first string of cmdline
 	char bgStr[] = "bg";
 	char fgStr[] = "fg";
 	char quitStr[] = "quit";
 	char jobsStr[] = "jobs";
 	
-	if(!strcmp(argv[0], fgStr) | !strcmp(argv[0], bgStr)){
+	if(!strcmp(argv[0], fgStr) | !strcmp(argv[0], bgStr)){	//fg or bg state (calls do_bgfg)
 		do_bgfg(argv);
 		return 1;
-	}else if(!strcmp(argv[0], quitStr)){
+	}else if(!strcmp(argv[0], quitStr)){		//quit state (exits)
 		exit(0);
-	}else if(!strcmp(argv[0], jobsStr)){
+	}else if(!strcmp(argv[0], jobsStr)){		//job state (calls given listjobs())
 		listjobs(jobs);
 		return 1;
 	}
@@ -382,15 +382,15 @@ void waitfg(pid_t pid)
 {
 	int doesJobExist = 0;
 	int i;
-	for (i=0; i<MAXJOBS; i++){
+	for (i=0; i<MAXJOBS; i++){		//loops through job list
 		if (jobs[i].pid == pid){
-			doesJobExist = 1;
+			doesJobExist = 1;		//if pid is in joblist, condition set to true
 			break;
 		}
 	}
 	if(doesJobExist){
 		while(pid == fgpid(jobs)){
-			sleep(1);
+			sleep(1);					//busy while loop until fg job is no longer in list
 		}
 	}
     return;
