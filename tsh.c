@@ -2,6 +2,7 @@
  * tsh - A tiny shell program with job control
  * 
  * Weishan Li, 30755725
+ * Jack DeGuglielmo, 30900481
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -193,17 +194,12 @@ void eval(char *cmdline)
 			}
 		}
 		if (!bg) {
-			//printf("BG:%d, pid: %d\n", bg, pid);
 			addjob(jobs, pid, FG, cmdline);
 			sigprocmask(SIG_SETMASK, &pmask, NULL);
 			
 			waitfg(pid);
-			/*if (waitpid(pid, &status, 0) < 0) {
-				unix_error("waitfg: waitpid error");
-			}*/
 		}
 		else {
-			//printf("BG:%d, pid: %d\n", bg, pid);
 			addjob(jobs, pid, BG, cmdline);
 			sigprocmask(SIG_SETMASK, &pmask, NULL);
 
@@ -393,8 +389,6 @@ void waitfg(pid_t pid)
 		}
 	}
 	if(doesJobExist){
-		//jobs[i].state == FG
-		//printf("FGPID:%d\n",fgpid(jobs));
 		while(pid == fgpid(jobs)){
 			sleep(1);
 		}
@@ -447,7 +441,6 @@ void sigint_handler(int sig)
 		if(jobs[i].pid != 0){
 			if(jobs[i].state == FG){
 				kill(-jobs[i].pid, sig);
-				//printf("Job [%d] (%d) terminated by signal %d\n", jobs[i].jid, jobs[i].pid, sig);
 			}
 		}
 	}
@@ -461,22 +454,12 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
-	
-	// pid_t pid = fgpid(jobs);
-	// if (pid != 0){
-	// 	kill(-pid, sig);
-	// 	//printf("Job [%d] (%d) stopped by signal %d\n", pid2jid(pid), pid, sig);
-	// }
 
 	int i=0;
 	for(i=0;i<MAXJOBS;i++){
 		if(jobs[i].state == FG){
 			if(jobs[i].pid != 0){
-				//printf("%d\n", jobs[i].pid);
-				//printf("2.Job [%d] (%d) stopped by signal %d\n", jobs[i].jid, jobs[i].pid, sig);
-				//jobs[i].state = ST;
 				kill(-jobs[i].pid, sig);
-				
 			}
 		}
 	}
