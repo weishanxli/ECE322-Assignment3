@@ -171,9 +171,11 @@ void eval(char *cmdline)
 	int bg;
 	pid_t pid;
 	
+	//create signal mask to block SIGCHLD signals later
 	sigset_t mask, pmask;
 	sigaddset(&mask, SIGCHLD);
 
+	//coppying cmdline to buf, bg set to 1/0 depending if '&' found in buf
 	strcpy(buf, cmdline);
 	bg = parseline(buf, argv);
 	
@@ -182,27 +184,40 @@ void eval(char *cmdline)
 		return;
 	}
 	
+	//checking for builtin commands
 	if (!builtin_cmd(argv)){
-		
+		//blocking SIGINT signals
 		sigprocmask(SIG_BLOCK, &mask, &pmask);
+
+		//fork a child process
 		if ((pid = fork()) == 0){
+			//unblock signals
 			sigprocmask(SIG_SETMASK, &pmask, NULL);
+			//setting the process's group id
 			setpgid(0,0);
+
+			//executing command
 			if (execve(argv[0], argv, environ) < 0){
 				printf("%s: Command not found.\n", argv[0]);
 				exit(0);
 			}
 		}
+
+		//if process in foreground
 		if (!bg) {
+			//add the job to the joblist
 			addjob(jobs, pid, FG, cmdline);
+			//unblock the signals
 			sigprocmask(SIG_SETMASK, &pmask, NULL);
-			
+			//parent waits til child process finishes
 			waitfg(pid);
 		}
+		//if process in background
 		else {
+			//add job to job the joblist
 			addjob(jobs, pid, BG, cmdline);
+			//unblock the signals
 			sigprocmask(SIG_SETMASK, &pmask, NULL);
-
 			printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
 		
 		}	
@@ -418,7 +433,7 @@ void sigchld_handler(int sig)
 		}
 		if (WIFSTOPPED(status) != 0){ //true if child process was stopped by delivery of signal
 			getjobpid(jobs, pid)->state = ST; //change state to stopped
-			printf("1.Job [%d] (%d) stopped by signal %d\n", pid2jid(pid), pid, WSTOPSIG(status));
+			printf("Job [%d] (%d) stopped by signal %d\n", pid2jid(pid), pid, WSTOPSIG(status));
 		}
 		if (WIFSIGNALED(status)){ //true if child process was terminated by delivery of signal
 			printf("Job [%d] (%d) terminated by signal %d\n", pid2jid(pid), pid, WTERMSIG(status));
@@ -436,14 +451,16 @@ void sigchld_handler(int sig)
 void sigint_handler(int sig) 
 {
 	int i=0;
+	//finding foreground job
 	for(i=0;i<MAXJOBS;i++){
 		if(jobs[i].pid != 0){
 			if(jobs[i].state == FG){
+				//sending SIGINT signal to foreground job
 				kill(-jobs[i].pid, sig);
+				return;
 			}
 		}
 	}
-    return;
 }
 
 /*
@@ -455,15 +472,16 @@ void sigtstp_handler(int sig)
 {
 
 	int i=0;
+	//finding foreground job
 	for(i=0;i<MAXJOBS;i++){
 		if(jobs[i].state == FG){
 			if(jobs[i].pid != 0){
+				//sending SIGTSTP signal to foreground job
 				kill(-jobs[i].pid, sig);
+				return;
 			}
 		}
 	}
-
-    return;
 }
 
 /*********************
