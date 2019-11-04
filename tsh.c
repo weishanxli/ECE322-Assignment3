@@ -436,10 +436,11 @@ void sigchld_handler(int sig)
 void sigint_handler(int sig) 
 {
 	int i=0;
-	for(i=0;i<MAXJOBS;i++){
+	for(i=0;i<MAXJOBS;i++){		//loops through jobs until pid = 0 (last job)
 		if(jobs[i].pid != 0){
-			if(jobs[i].state == FG){
-				kill(-jobs[i].pid, sig);
+			if(jobs[i].state == FG){		//finds job in FG
+				kill(-jobs[i].pid, sig);		//send kill to gpid for fg jobs
+				return;
 			}
 		}
 	}
@@ -459,6 +460,7 @@ void sigtstp_handler(int sig)
 		if(jobs[i].state == FG){
 			if(jobs[i].pid != 0){
 				kill(-jobs[i].pid, sig);
+				return;
 			}
 		}
 	}
