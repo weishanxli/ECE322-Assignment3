@@ -424,17 +424,14 @@ void sigchld_handler(int sig)
 		}
 		if (WIFSTOPPED(status) != 0){
 			getjobpid(jobs, pid)->state = ST;
-			//printf("Job [%d] (%d) stopped by signal %d\n", pid2jid(pid), pid, WSTOPSIG(status));
+			printf("1.Job [%d] (%d) stopped by signal %d\n", pid2jid(pid), pid, WSTOPSIG(status));
 		}
 		if (WIFSIGNALED(status)){
-			//printf("Job [%d] (%d) terminated by signal %d\n", pid2jid(pid), pid, WTERMSIG(status));
+			printf("Job [%d] (%d) terminated by signal %d\n", pid2jid(pid), pid, WTERMSIG(status));
 			deletejob(jobs, pid);
 		}
 	}
-	// if (errno != ECHILD) {
-	// 	unix_error("waitpid error");
-	// }
-	// errno = olderrno;
+
     return;
 }
 
@@ -450,7 +447,7 @@ void sigint_handler(int sig)
 		if(jobs[i].pid != 0){
 			if(jobs[i].state == FG){
 				kill(-jobs[i].pid, sig);
-				printf("Job [%d] (%d) terminated by signal %d\n", jobs[i].jid, jobs[i].pid, sig);
+				//printf("Job [%d] (%d) terminated by signal %d\n", jobs[i].jid, jobs[i].pid, sig);
 			}
 		}
 	}
@@ -468,21 +465,18 @@ void sigtstp_handler(int sig)
 	// pid_t pid = fgpid(jobs);
 	// if (pid != 0){
 	// 	kill(-pid, sig);
-	// 	printf("Job [%d] (%d) stopped by signal 20\n", pid2jid(pid), pid);
+	// 	//printf("Job [%d] (%d) stopped by signal %d\n", pid2jid(pid), pid, sig);
 	// }
 
 	int i=0;
 	for(i=0;i<MAXJOBS;i++){
-		if(jobs[i].pid != 0){
-			//printf("part3\n");
-			if(jobs[i].state == FG){
+		if(jobs[i].state == FG){
+			if(jobs[i].pid != 0){
 				//printf("%d\n", jobs[i].pid);
-				printf("Job [%d] (%d) stopped by signal %d\n", jobs[i].jid, jobs[i].pid, sig);
-				jobs[i].state = ST;
+				//printf("2.Job [%d] (%d) stopped by signal %d\n", jobs[i].jid, jobs[i].pid, sig);
+				//jobs[i].state = ST;
 				kill(-jobs[i].pid, sig);
-
-			// }else if(jobs[i].state == ST){
-			// 	kill(-jobs[i].pid, SIGCONT);
+				
 			}
 		}
 	}
