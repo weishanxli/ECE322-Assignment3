@@ -452,11 +452,10 @@ void sigint_handler(int sig)
 {
 	int i=0;
 	//finding foreground job
-	for(i=0;i<MAXJOBS;i++){
+	for(i=0;i<MAXJOBS;i++){		//loops through jobs until pid = 0 (last job)
 		if(jobs[i].pid != 0){
-			if(jobs[i].state == FG){
-				//sending SIGINT signal to foreground job
-				kill(-jobs[i].pid, sig);
+			if(jobs[i].state == FG){		//finds job in FG
+				kill(-jobs[i].pid, sig);		//send kill to gpid for fg jobs
 				return;
 			}
 		}
