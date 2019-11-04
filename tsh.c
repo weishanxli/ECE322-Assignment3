@@ -411,21 +411,20 @@ void sigchld_handler(int sig)
 {
 	pid_t pid;
 	int status;
-
+	//WNOHANG returns immediately if no child exits, WUNTRACED returns if child has stopped
 	while((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0){
-		if (WIFEXITED(status) != 0){
-			deletejob(jobs, pid);
+		if (WIFEXITED(status) != 0){		//true if child has terminated normally
+			deletejob(jobs, pid);		//deletes terminated job
 		}
-		if (WIFSTOPPED(status) != 0){
-			getjobpid(jobs, pid)->state = ST;
+		if (WIFSTOPPED(status) != 0){ //true if child process was stopped by delivery of signal
+			getjobpid(jobs, pid)->state = ST; //change state to stopped
 			printf("1.Job [%d] (%d) stopped by signal %d\n", pid2jid(pid), pid, WSTOPSIG(status));
 		}
-		if (WIFSIGNALED(status)){
+		if (WIFSIGNALED(status)){ //true if child process was terminated by delivery of signal
 			printf("Job [%d] (%d) terminated by signal %d\n", pid2jid(pid), pid, WTERMSIG(status));
-			deletejob(jobs, pid);
+			deletejob(jobs, pid);	//deletes terminated job
 		}
 	}
-
     return;
 }
 
